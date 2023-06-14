@@ -1,5 +1,10 @@
 # RSA - Lane Merge
 
+## Work contribution
+
+* **50%** - Diogo Aguiar, 81020
+* **50%** - Victor Souza, 89330
+
 ## Requirements
 
 * Install xterm
@@ -59,10 +64,5 @@ docker compose up
 ```bash
 ./runOBUs.sh
 ```
-
-## Work contribution
-
-* **50%** - Diogo Aguiar, 81020
-* **50%** - Victor Souza, 89330
 
 
