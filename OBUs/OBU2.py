@@ -53,45 +53,60 @@ def run_along_path(coordinates, delay):
     global result_coordinates, speed_m_per_sec, operation_done
     first_time = True
 
+    # for coordinate (lat, lon) in lane
     for i in range(len(coordinates) - 1):
         current_coord = coordinates[i]
         next_coord = coordinates[i + 1]
         distance = calculate_distance(current_coord, next_coord) * 1000
         time_interval = (distance / speed_m_per_sec)
+
+        # calculate how many position updates will exist between 
+        #these 2 coordinates
         num_steps = int(time_interval * 1000 / delay)
 
+        # while it hasn't gone through all steps
         while num_steps >= 1:
             dlat = (next_coord[0] - current_coord[0]) / num_steps
             dlon = (next_coord[1] - current_coord[1]) / num_steps
 
             start_time = time.time()
+
+            # move vehicle by adding to the coordinates
             lat = current_coord[0] + dlat
             lon = current_coord[1] + dlon
             result_coordinates = [lat, lon]
             current_coord = result_coordinates
 
+            # Send info to front-end
             send_message("2 " + str(lat) + " " + str(lon))
 
+            # generate CAM message
             threading.Thread(target=generate_cam(
                 lat, lon, speed_m_per_sec)).start()
 
+            # 50ms between each position update
             time.sleep(delay / 1000)
-
             stop_time = time.time()
+
+            # If vehicle still performing a maneuver
             if ((stop_time - operation_start_time) < operation_timeout):
                 elapsed_time = stop_time - start_time
                 speed_m_per_sec += needed_acceleration * elapsed_time
                 operation_done = True
+            
+            # When maneuver is done send acknowledgement and set
+            #speed to the same as the master OBU (OBU1 in this scenario)
             elif (operation_done):
                 if first_time:
                     speed_m_per_sec = masterOBU_speed_m_per_second
                     threading.Thread(target=generate_goto_ack(True))
                     first_time = False
 
+            # before starting the maneuver, speed is constant 40km/h
             else:
                 speed_m_per_sec = speed_km_per_hour * (1000/3600)
 
-            # new
+            # Recalculate this values to apply acceleration
             distance = calculate_distance(current_coord, next_coord) * 1000
             time_interval = (distance / speed_m_per_sec)
             num_steps = int(time_interval * 1000 / delay)

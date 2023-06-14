@@ -26,6 +26,7 @@ lane2_coordinates = [
     [40.64523410586812, -8.655930384993555]
 ]
 
+
 speed_km_per_hour = 40
 speed_m_per_sec = speed_km_per_hour * (1000/3600)
 delay_ms = 50
@@ -42,15 +43,6 @@ OBU2_coords = []
 OBU3_coords = []
 change_trajectory = False
 
-
-def calculate_safety_distance(speed):
-    reaction_time = 1.5
-    braking_distance = 0.5 * speed
-
-    safety_distance = speed * reaction_time + braking_distance
-    return safety_distance
-
-
 def calculate_distance(coord1, coord2):
     lat1, lon1 = coord1
     lat2, lon2 = coord2
@@ -63,56 +55,71 @@ def calculate_distance(coord1, coord2):
     distance = radius * c
     return distance
 
-
-def calculate_time_interval(distance, speed):
-    duration_hours = distance / speed
-    duration_seconds = duration_hours * 3600
-    return duration_seconds
-
-
 def run_along_path(delay):
     global result_coordinates, speed_m_per_sec, change_trajectory
     time_counter = 0
     lane_change = False
 
     i = 0
+
+    # for coordinate (lat, lon) in lane
     while i < (len(coordinates) - 1):
         current_coord = coordinates[i]
         next_coord = coordinates[i + 1]
         distance = calculate_distance(current_coord, next_coord) * 1000
         time_interval = (distance / speed_m_per_sec)
+
+        # calculate how many position updates will exist between 
+        #these 2 coordinates
         num_steps = int(time_interval * 1000 / delay)
 
+        # while it hasn't gone through all steps
         while num_steps >= 1:
+            
+            # if statement, used to reset steps once the vehicle 
+            #path changes from lane 1 to lane 2
             if change_trajectory == False:
                 dlat = (next_coord[0] - current_coord[0]) / num_steps
                 dlon = (next_coord[1] - current_coord[1]) / num_steps
-
+                
+                # Move vehicle by adding to the coordinates
                 lat = current_coord[0] + dlat
                 lon = current_coord[1] + dlon
                 result_coordinates = [lat, lon]
                 current_coord = result_coordinates
 
+                # Send info to front-end
                 send_message("1 " + str(lat) + " " + str(lon))
+
+                # Generate CAM message
                 threading.Thread(target=generate_cam(
                     lat, lon, speed_m_per_sec)).start()
+                
+                # After an arbitrary timing, decides it wants to merge
+                #and sends MCM scheduled_goto
                 time_counter += 1
                 if (time_counter == start_point):
                     threading.Thread(target=generate_scheduled_goto()).start()
+
+                # 50ms between each position update
                 time.sleep(delay / 1000)
 
                 speed_m_per_sec = speed_km_per_hour * (1000/3600)
 
-                # new
                 distance = calculate_distance(current_coord, next_coord) * 1000
                 time_interval = (distance / speed_m_per_sec)
                 num_steps = int(time_interval * 1000 / delay)
+            
+            # If it decided to merge and path was changed
             else:
                 i = -1
                 change_trajectory = False
                 lane_change = True
                 break
         i += 1
+
+        # If lane change is complete, send MCM
+        #control_state with value "DONE"
         if (lane_change and i == 1):
             threading.Thread(target=generate_control_state("DONE"))
             print("\nMerge over!")
