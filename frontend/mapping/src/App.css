@@ -1,0 +1,17 @@
+#map {
+    height: 100vh;
+    width: 70%;
+    align-self: flex-end;
+}
+
+.wrapper {
+    display: flex;
+    position: relative;
+}
+
+.messages {
+    width: 30%;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: rgb(206, 206, 206);
+}

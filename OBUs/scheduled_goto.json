@@ -1,0 +1,6 @@
+{
+    "stationID": 1,
+    "lane": 2,
+    "timeout": 7,
+    "delayed": "FAIL"
+}
