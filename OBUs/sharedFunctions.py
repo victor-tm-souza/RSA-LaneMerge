@@ -17,7 +17,7 @@ def calculate_middle_point(lat1, lon1, lat2, lon2):
 
     return avg_lat_deg, avg_lon_deg
 
-
+# Deacceleration
 def calculate_acceleration_1(coord_a, coord_b, speed_a, speed_b, distance, time):
 
     # Calculate the initial distance between the vehicles
@@ -35,7 +35,7 @@ def calculate_acceleration_1(coord_a, coord_b, speed_a, speed_b, distance, time)
 
     return acceleration
 
-
+# Acceleration
 def calculate_acceleration_2(coord_a, coord_b, speed_a, speed_b, distance, time):
 
     # Calculate the initial distance between the vehicles

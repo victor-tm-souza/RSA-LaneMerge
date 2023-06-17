@@ -55,6 +55,8 @@ def calculate_distance(coord1, coord2):
     distance = radius * c
     return distance
 
+# coordinates = lane coordinates
+
 def run_along_path(delay):
     global result_coordinates, speed_m_per_sec, change_trajectory
     time_counter = 0
